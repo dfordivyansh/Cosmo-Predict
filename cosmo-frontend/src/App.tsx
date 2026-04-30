@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import Prediction from "./pages/Prediction";
 import Footer from "@/components/Footer";
 import Contact from './pages/Contact';
+import ScrollToTop from './components/ScrollToTop';
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -26,6 +27,7 @@ const App = () => (
           <div className="min-h-screen">
             <Navbar />
             <main className="pt-16">
+              <ScrollToTop /> 
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/dashboard" element={<Dashboard />} />

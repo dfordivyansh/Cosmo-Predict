@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,8 @@ import {
 
 import { toast } from "sonner";
 
+const ACCESS_KEY = "SPACE-2026"; // 🔑 KEY
+
 const Prediction = () => {
   const [minKp, setMinKp] = useState(0);
 
@@ -44,10 +46,42 @@ const Prediction = () => {
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
 
+  // 🔐 ACCESS STATES
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [inputKey, setInputKey] = useState("");
+  const [error, setError] = useState("");
+  const [verifying, setVerifying] = useState(false);
+
   const BASE = "http://127.0.0.1:8000/api";
 
   // ============================
-  // 🔥 FINAL ANALYSIS ENGINE
+  // 🔐 CHECK LOCAL AUTH
+  // ============================
+  useEffect(() => {
+    const saved = localStorage.getItem("prediction-auth");
+    if (saved === "true") setIsAuthorized(true);
+  }, []);
+
+  // ============================
+  // 🔐 ACCESS HANDLER
+  // ============================
+  const handleAccess = () => {
+    setVerifying(true);
+
+    setTimeout(() => {
+      if (inputKey === ACCESS_KEY) {
+        localStorage.setItem("prediction-auth", "true");
+        setIsAuthorized(true);
+        setError("");
+      } else {
+        setError("❌ Invalid Access Key");
+      }
+      setVerifying(false);
+    }, 700);
+  };
+
+  // ============================
+  // 🔥 ANALYSIS
   // ============================
   const fetchData = async () => {
     if (!startDate || !endDate) {
@@ -57,8 +91,6 @@ const Prediction = () => {
 
     try {
       setLoading(true);
-
-      // RESET (IMPORTANT)
       setResult(null);
       setData([]);
 
@@ -79,45 +111,36 @@ const Prediction = () => {
       const rangeData = rangeRes.data;
 
       if (!rangeData.length) {
-        toast.error("No data found in this range");
+        toast.error("No data found");
         return;
       }
 
-      // 🔥 APPLY FILTER
       const filtered = rangeData.filter(
         (d: any) => Number(d.kp) >= minKp
       );
 
       if (!filtered.length) {
-        toast.error("No data after KP filter");
+        toast.error("No data after filter");
         return;
       }
 
       setData(filtered);
 
-      // ============================
-      // 🧠 SMART ANALYSIS
-      // ============================
-
       const kpValues = filtered.map((d: any) => Number(d.kp));
-
       const avgKp =
         kpValues.reduce((a, b) => a + b, 0) / kpValues.length;
 
       const currentKp = kpValues[kpValues.length - 1];
 
-      // 🔥 TREND
       let trend = "stable";
       if (currentKp > kpValues[0]) trend = "increasing";
       else if (currentKp < kpValues[0]) trend = "decreasing";
 
-      // 🔥 PREDICTION
       let prediction = "Quiet";
       if (avgKp > 6) prediction = "Severe Storm";
       else if (avgKp > 4) prediction = "Strong Storm";
       else if (avgKp > 2) prediction = "Moderate Activity";
 
-      // 🔥 CONFIDENCE (REALISTIC)
       const variance =
         kpValues.reduce((a, v) => a + Math.abs(v - avgKp), 0) /
         kpValues.length;
@@ -139,7 +162,6 @@ const Prediction = () => {
       setResult(final);
       setAlertsFeed(alertRes.data);
 
-      // 🔥 UNIQUE HISTORY
       setHistory((prev) => [
         final,
         ...prev.filter((p) => p.time !== final.time).slice(0, 5),
@@ -147,8 +169,7 @@ const Prediction = () => {
 
       toast.success("Analysis Complete 🚀");
 
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("API Error");
     } finally {
       setLoading(false);
@@ -161,14 +182,13 @@ const Prediction = () => {
   const speakAnalysis = () => {
     if (!result) return;
 
-    const text = `
-    Current KP is ${result.current_kp}.
-    Condition is ${result.prediction}.
-    Trend is ${result.trend}.
-    Confidence ${result.confidence} percent.
-    `;
+    const speech = new SpeechSynthesisUtterance(`
+      Current KP is ${result.current_kp}.
+      Condition is ${result.prediction}.
+      Trend is ${result.trend}.
+      Confidence ${result.confidence} percent.
+    `);
 
-    const speech = new SpeechSynthesisUtterance(text);
     speech.lang = "en-US";
     window.speechSynthesis.speak(speech);
   };
@@ -179,19 +199,49 @@ const Prediction = () => {
     return "text-green-400";
   };
 
+  // ============================
+  // 🔐 ACCESS SCREEN
+  // ============================
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
+        <div className="bg-white/5 border border-white/10 p-8 rounded-2xl text-center w-full max-w-md">
+
+          <h1 className="text-2xl font-bold text-cyan-400 mb-4">
+            🔐 Secure Prediction Engine
+          </h1>
+
+          <input
+            type="password"
+            placeholder="Enter Access Key"
+            value={inputKey}
+            onChange={(e) => setInputKey(e.target.value)}
+            className="w-full p-3 rounded-xl bg-black border border-white/20 mb-4"
+          />
+
+          <Button onClick={handleAccess} className="w-full bg-cyan-500">
+            {verifying ? "Verifying..." : "Unlock"}
+          </Button>
+
+          {error && <p className="text-red-400 mt-3">{error}</p>}
+        </div>
+      </div>
+    );
+  }
+
+  // ============================
+  // 🚀 MAIN UI
+  // ============================
   return (
     <div className="min-h-screen bg-black text-white p-6">
 
-      {/* HEADER */}
       <div className="text-center mb-6">
         <FaSatellite className="text-cyan-400 text-4xl mx-auto mb-2" />
         <h1 className="text-3xl font-bold">CosmoPredict</h1>
       </div>
 
-      {/* CONTROLS */}
       <Card className="p-4 mb-6 grid md:grid-cols-5 gap-4 bg-white/5">
 
-        {/* START */}
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline">
@@ -200,15 +250,10 @@ const Prediction = () => {
             </Button>
           </PopoverTrigger>
           <PopoverContent>
-            <Calendar
-              mode="single"
-              selected={startDate}
-              onSelect={(d) => setStartDate(d)}
-            />
+            <Calendar mode="single" selected={startDate} onSelect={setStartDate} />
           </PopoverContent>
         </Popover>
 
-        {/* END */}
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline">
@@ -217,11 +262,7 @@ const Prediction = () => {
             </Button>
           </PopoverTrigger>
           <PopoverContent>
-            <Calendar
-              mode="single"
-              selected={endDate}
-              onSelect={(d) => setEndDate(d)}
-            />
+            <Calendar mode="single" selected={endDate} onSelect={setEndDate} />
           </PopoverContent>
         </Popover>
 
@@ -240,21 +281,17 @@ const Prediction = () => {
         </Button>
       </Card>
 
-      {/* RESULT */}
       {result && (
         <Card className="p-6 mb-6 text-center bg-white/5">
           <h2 className="text-5xl font-bold">{result.current_kp}</h2>
-
           <p className={getColor(Number(result.current_kp))}>
             {result.prediction}
           </p>
-
           <p>Trend: {result.trend}</p>
           <p>Confidence: {result.confidence}%</p>
         </Card>
       )}
 
-      {/* GRAPH */}
       {data.length > 0 && (
         <Card className="p-4 mb-6 bg-white/5">
           <ResponsiveContainer width="100%" height={250}>
@@ -269,7 +306,6 @@ const Prediction = () => {
         </Card>
       )}
 
-      {/* ALERTS */}
       {alertsFeed.length > 0 && (
         <Card className="p-4 mb-6 bg-white/5">
           {alertsFeed.slice(0, 3).map((a, i) => (
@@ -278,7 +314,6 @@ const Prediction = () => {
         </Card>
       )}
 
-      {/* HISTORY */}
       {history.length > 0 && (
         <Card className="p-4 bg-white/5">
           <FaHistory /> History

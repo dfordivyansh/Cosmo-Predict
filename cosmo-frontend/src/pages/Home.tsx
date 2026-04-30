@@ -97,7 +97,7 @@ const Home = () => {
           {apod && (
             <div className="mb-6">
               <h2 className="text-lg text-cyan-400 font-semibold">
-                NASA Image of the Day
+                Todays NASA Gallery
               </h2>
               <p className="text-sm text-gray-400 mt-1">{apod.title}</p>
             </div>

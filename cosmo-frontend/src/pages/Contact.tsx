@@ -29,7 +29,7 @@ const Contact = () => {
         "service_7xtte9x",
         "template_g4r36ip",
         formData,
-        "9Aix5mfMWoPEWDXmy"
+        "9Aix5mfMWoPEWDXmy",
       )
       .then(
         () => {
@@ -46,36 +46,26 @@ const Contact = () => {
         },
         () => {
           toast.error("Failed to send message ❌");
-        }
+        },
       );
   };
 
   return (
     <div className="min-h-screen pt-24 pb-12 bg-gradient-to-br from-[#020617] via-[#020617] to-[#0f172a]">
       <div className="container mx-auto px-4 max-w-6xl">
-
         {/* HEADER */}
         <div className="mb-12 text-center">
           <Mail className="w-16 h-16 mx-auto mb-4 text-cyan-400 animate-pulse" />
-          <h1 className="text-4xl font-bold text-white">
-            Contact Us
-          </h1>
-          <p className="text-gray-400">
-            We'd love to hear from you
-          </p>
+          <h1 className="text-4xl font-bold text-white">Contact Us</h1>
+          <p className="text-gray-400">We'd love to hear from you</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-
           {/* FORM */}
           <Card className="p-8 bg-white/5 border border-white/10 backdrop-blur-xl shadow-xl">
-
-            <h2 className="text-2xl font-bold mb-6 text-white">
-              Send Message
-            </h2>
+            <h2 className="text-2xl font-bold mb-6 text-white">Send Message</h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-
               {/* NAME + EMAIL */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -149,8 +139,7 @@ const Contact = () => {
                   value={formData.inquiryType}
                   onChange={(e) =>
                     setFormData({ ...formData, inquiryType: e.target.value })
-                  }
-                >
+                  }>
                   <option value="">Select type</option>
                   <option>Space Weather Detection</option>
                   <option>Rocket Trajectory Simulation</option>
@@ -178,13 +167,11 @@ const Contact = () => {
                 <Send className="mr-2 w-5 h-5" />
                 Send Message
               </Button>
-
             </form>
           </Card>
 
           {/* RIGHT SIDE */}
           <div className="space-y-6">
-
             <Card className="p-6 bg-white/5 border border-white/10">
               <div className="flex gap-4">
                 <Mail className="text-cyan-400" />
@@ -192,10 +179,12 @@ const Contact = () => {
                   <h3 className="text-white font-semibold mb-2">Email</h3>
 
                   <p className="text-gray-400">dfordivyansh3@gmail.com</p>
+                  <p className="text-gray-400">
+                    krishnakantsharma122004@gmail.com
+                  </p>
+
                   <p className="text-gray-400">ajayadav7376@gmail.com</p>
                   <p className="text-gray-400">shantanushahi9@gmail.com </p>
-                  <p className="text-gray-400">krishnakantsharma122004@gmail.com</p>
-
                 </div>
               </div>
             </Card>
@@ -221,9 +210,7 @@ const Contact = () => {
                 src="https://www.bing.com/maps/embed?h=450&w=600&cp=26.752611~83.371307&lvl=16&typ=d&sty=r&src=SHELL&form=BMEMJS"
               />
             </Card>
-
           </div>
-
         </div>
       </div>
     </div>

@@ -61,7 +61,6 @@ const Insights = () => {
         setApod(nasa.data.apod);
         setAsteroids(nasa.data.asteroids || []);
         setAlerts(nasa.data.alerts || []);
-
       } catch (err) {
         console.log("Insights error", err);
       } finally {
@@ -83,7 +82,9 @@ const Insights = () => {
 
   const getAlertScore = () => {
     if (!aiData) return 0;
-    return Math.min(100, aiData.current_kp * 15 + aiData.avg_kp * 10).toFixed(0);
+    return Math.min(100, aiData.current_kp * 15 + aiData.avg_kp * 10).toFixed(
+      0,
+    );
   };
 
   const compareAIvsNASA = () => {
@@ -99,10 +100,20 @@ const Insights = () => {
 
     return "AI Matches NASA";
   };
+  const isImage = apod?.media_type === "image";
+
+  const imageUrl =
+    isImage && (apod?.hdurl || apod?.url)
+      ? apod.hdurl || apod.url
+      : "https://images.unsplash.com/photo-1462331940025-496dfbfc7564";
+
+  const videoUrl =
+    apod?.media_type === "video" && apod?.url?.includes("youtube.com")
+      ? apod.url.replace("watch?v=", "embed/") + "?autoplay=1&mute=1"
+      : apod?.url;
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-10">
-
       {/* HEADER */}
       <div>
         <h1 className="text-4xl font-bold gradient-text">
@@ -116,7 +127,6 @@ const Insights = () => {
       {/* AI SUMMARY */}
       {aiData && (
         <div className="grid md:grid-cols-4 gap-6">
-
           <Card className="glass-card text-center">
             <CardContent className="p-4">
               <Activity className="mx-auto mb-2 text-cyan-400" />
@@ -148,138 +158,168 @@ const Insights = () => {
               <h2>{aiData.confidence}%</h2>
             </CardContent>
           </Card>
-
         </div>
       )}
 
       {/* NASA */}
       <div className="grid lg:grid-cols-2 gap-6">
-
         {apod && (
           <Card className="glass-card">
             <CardHeader>
               <CardTitle className="flex gap-2 items-center">
-                <Globe size={18} /> NASA Image of the Day
+                <Globe size={18} /> NASA Image / Video of the Day
               </CardTitle>
             </CardHeader>
+
             <CardContent>
-              <img src={apod.url} className="rounded-lg mb-3" />
-              <p className="font-semibold">{apod.title}</p>
+              {/* IMAGE */}
+              {isImage && (
+                <img
+                  src={imageUrl}
+                  className="rounded-lg mb-3 w-full max-h-[300px] object-cover"
+                />
+              )}
+
+              {/* VIDEO */}
+              {apod?.media_type === "video" && (
+                <div className="rounded-lg overflow-hidden mb-3">
+                  {/* MP4 */}
+                  {apod.url?.endsWith(".mp4") ? (
+                    <video
+                      src={apod.url}
+                      autoPlay
+                      muted
+                      loop
+                      controls
+                      className="w-full max-h-[300px] object-cover"
+                    />
+                  ) : (
+                    /* YouTube / Vimeo */
+                    <iframe
+                      src={videoUrl}
+                      title="NASA Video"
+                      className="w-full h-[300px]"
+                      allow="autoplay; fullscreen"
+                    />
+                  )}
+                </div>
+              )}
+
+              <p className="font-semibold">{apod?.title}</p>
             </CardContent>
           </Card>
         )}
 
-<Card className="glass-card">
-  <CardHeader>
-    <CardTitle className="flex gap-2 items-center">
-      <Orbit size={18} /> Near Earth Objects
-    </CardTitle>
-  </CardHeader>
+        <Card className="glass-card">
+          <CardHeader>
+            <CardTitle className="flex gap-2 items-center">
+              <Orbit size={18} /> Near Earth Objects
+            </CardTitle>
+          </CardHeader>
 
-  <CardContent className="space-y-4">
+          <CardContent className="space-y-4">
+            {/* 📊 PIE CHART */}
+            <div className="h-[180px]">
+              <ResponsiveContainer>
+                <PieChart>
+                  <Pie
+                    data={[
+                      {
+                        name: "Safe",
+                        value: asteroids.filter(
+                          (a) => !a.is_potentially_hazardous_asteroid,
+                        ).length,
+                      },
+                      {
+                        name: "Hazardous",
+                        value: asteroids.filter(
+                          (a) => a.is_potentially_hazardous_asteroid,
+                        ).length,
+                      },
+                    ]}
+                    dataKey="value"
+                    outerRadius={70}>
+                    <Cell fill="#22c55e" />
+                    <Cell fill="#ef4444" />
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
 
-    {/* 📊 PIE CHART */}
-    <div className="h-[180px]">
-      <ResponsiveContainer>
-        <PieChart>
-          <Pie
-            data={[
-              {
-                name: "Safe",
-                value: asteroids.filter(a => !a.is_potentially_hazardous_asteroid).length,
-              },
-              {
-                name: "Hazardous",
-                value: asteroids.filter(a => a.is_potentially_hazardous_asteroid).length,
-              },
-            ]}
-            dataKey="value"
-            outerRadius={70}
-          >
-            <Cell fill="#22c55e" />
-            <Cell fill="#ef4444" />
-          </Pie>
-          <Tooltip />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
+            {/* 📋 LIST WITH DETAILS */}
+            <div className="space-y-3">
+              {asteroids.slice(0, 3).map((a: any, i: number) => {
+                const approach = a.close_approach_data?.[0];
 
-    {/* 📋 LIST WITH DETAILS */}
-    <div className="space-y-3">
-      {asteroids.slice(0, 3).map((a: any, i: number) => {
-        const approach = a.close_approach_data?.[0];
+                return (
+                  <div
+                    key={i}
+                    className="p-3 rounded-lg bg-white/5 border border-white/10">
+                    <p className="font-semibold text-sm">{a.name}</p>
 
-        return (
-          <div
-            key={i}
-            className="p-3 rounded-lg bg-white/5 border border-white/10"
-          >
-            <p className="font-semibold text-sm">{a.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Speed:{" "}
+                      {approach
+                        ? parseFloat(
+                            approach.relative_velocity.kilometers_per_hour,
+                          ).toFixed(0)
+                        : "N/A"}{" "}
+                      km/h
+                    </p>
 
-            <p className="text-xs text-muted-foreground">
-              Speed:{" "}
-              {approach
-                ? parseFloat(
-                    approach.relative_velocity.kilometers_per_hour
-                  ).toFixed(0)
-                : "N/A"}{" "}
-              km/h
-            </p>
+                    <Badge
+                      className="mt-1"
+                      variant={
+                        a.is_potentially_hazardous_asteroid
+                          ? "destructive"
+                          : "secondary"
+                      }>
+                      {a.is_potentially_hazardous_asteroid
+                        ? "Hazardous"
+                        : "Safe"}
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
 
-            <Badge
-              className="mt-1"
-              variant={
-                a.is_potentially_hazardous_asteroid
-                  ? "destructive"
-                  : "secondary"
-              }
-            >
-              {a.is_potentially_hazardous_asteroid ? "Hazardous" : "Safe"}
-            </Badge>
-          </div>
-        );
-      })}
-    </div>
-
-    {/* 📊 SPEED BAR CHART */}
-    <div className="h-[150px]">
-      <ResponsiveContainer>
-        <BarChart
-          data={asteroids.slice(0, 3).map((a: any) => ({
-            name: a.name.slice(0, 8),
-            speed: parseFloat(
-              a.close_approach_data?.[0]?.relative_velocity
-                ?.kilometers_per_hour || 0
-            ),
-          }))}
-        >
-          <XAxis dataKey="name" hide />
-          <YAxis hide />
-          <Tooltip />
-          <Bar dataKey="speed" fill="#38bdf8" />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-
-  </CardContent>
-</Card>
-
+            {/* 📊 SPEED BAR CHART */}
+            <div className="h-[150px]">
+              <ResponsiveContainer>
+                <BarChart
+                  data={asteroids.slice(0, 3).map((a: any) => ({
+                    name: a.name.slice(0, 8),
+                    speed: parseFloat(
+                      a.close_approach_data?.[0]?.relative_velocity
+                        ?.kilometers_per_hour || 0,
+                    ),
+                  }))}>
+                  <XAxis dataKey="name" hide />
+                  <YAxis hide />
+                  <Tooltip />
+                  <Bar dataKey="speed" fill="#38bdf8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* ANALYTICS */}
       {analytics && (
         <div className="grid lg:grid-cols-3 gap-6">
-
           <Card className="glass-card">
             <CardHeader>
               <CardTitle>KP Analysis</CardTitle>
             </CardHeader>
             <CardContent className="h-[220px]">
               <ResponsiveContainer>
-                <BarChart data={[
-                  { name: "Avg", value: analytics.avg_kp },
-                  { name: "Max", value: analytics.max_kp },
-                ]}>
+                <BarChart
+                  data={[
+                    { name: "Avg", value: analytics.avg_kp },
+                    { name: "Max", value: analytics.max_kp },
+                  ]}>
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
@@ -295,10 +335,11 @@ const Insights = () => {
             </CardHeader>
             <CardContent className="h-[220px]">
               <ResponsiveContainer>
-                <BarChart data={[
-                  { name: "Avg", value: analytics.avg_speed },
-                  { name: "Max", value: analytics.max_speed },
-                ]}>
+                <BarChart
+                  data={[
+                    { name: "Avg", value: analytics.avg_speed },
+                    { name: "Max", value: analytics.max_speed },
+                  ]}>
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
@@ -317,16 +358,12 @@ const Insights = () => {
               </h2>
             </CardContent>
           </Card>
-
         </div>
       )}
-
-
 
       {loading && (
         <p className="text-center text-cyan-400">Loading insights...</p>
       )}
-
     </div>
   );
 };
