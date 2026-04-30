@@ -1,0 +1,207 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Light Mode - Clean Space Theme */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 270 60% 65%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    
+    --accent: 189 95% 55%;
+    --accent-foreground: 222 47% 11%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --success: 142 76% 45%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
+    
+    --radius: 0.75rem;
+    
+    /* Space Theme Gradients */
+    --gradient-cosmic: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(270 60% 65%) 100%);
+    --gradient-aurora: linear-gradient(135deg, hsl(189 95% 55%) 0%, hsl(270 60% 65%) 50%, hsl(333 95% 60%) 100%);
+    --gradient-nebula: linear-gradient(180deg, hsl(270 60% 65% / 0.1) 0%, hsl(217 91% 60% / 0.05) 100%);
+    
+    /* Glow Effects */
+    --glow-primary: 0 0 20px hsl(217 91% 60% / 0.5);
+    --glow-accent: 0 0 20px hsl(189 95% 55% / 0.5);
+    --glow-warning: 0 0 20px hsl(38 92% 50% / 0.5);
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    /* Dark Mode - Deep Space Theme */
+    --background: 222 47% 4%;
+    --foreground: 210 40% 98%;
+    
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 98%;
+    
+    --primary: 189 95% 55%;
+    --primary-foreground: 222 47% 4%;
+    
+    --secondary: 270 60% 65%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    
+    --accent: 189 95% 55%;
+    --accent-foreground: 222 47% 4%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --success: 142 76% 45%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 189 95% 55%;
+    
+    /* Glow Effects - Stronger in dark mode */
+    --glow-primary: 0 0 30px hsl(189 95% 55% / 0.6);
+    --glow-accent: 0 0 30px hsl(270 60% 65% / 0.6);
+    --glow-warning: 0 0 30px hsl(38 92% 50% / 0.6);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground transition-colors duration-300;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  
+  /* Animated Background Stars */
+  .stars-background {
+    background: radial-gradient(2px 2px at 20% 30%, white, transparent),
+                radial-gradient(2px 2px at 60% 70%, white, transparent),
+                radial-gradient(1px 1px at 50% 50%, white, transparent),
+                radial-gradient(1px 1px at 80% 10%, white, transparent),
+                radial-gradient(2px 2px at 90% 60%, white, transparent),
+                radial-gradient(1px 1px at 33% 80%, white, transparent);
+    background-size: 200% 200%;
+    animation: stars-twinkle 8s ease-in-out infinite;
+  }
+  
+  @keyframes stars-twinkle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  /* Glass Morphism */
+  .glass-card {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+  
+  /* Glow Effects */
+  .glow-primary {
+    box-shadow: var(--glow-primary);
+  }
+  
+  .glow-accent {
+    box-shadow: var(--glow-accent);
+  }
+  
+  /* Gradient Text */
+  .gradient-text {
+    background: var(--gradient-cosmic);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Shadow Glow Utilities */
+  .shadow-glow-primary {
+    box-shadow: var(--glow-primary);
+  }
+  
+  .shadow-glow-accent {
+    box-shadow: var(--glow-accent);
+  }
+  
+  .shadow-glow-warning {
+    box-shadow: var(--glow-warning);
+  }
+  
+  /* Gradient Backgrounds */
+  .bg-gradient-nebula {
+    background: var(--gradient-nebula);
+  }
+  
+  /* Float Animation */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  /* Smooth Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.5);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary));
+  }
+}
