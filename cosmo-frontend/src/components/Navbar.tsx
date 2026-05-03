@@ -7,6 +7,8 @@ import {
   Activity,
   Orbit,
   TrendingUp,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import cosmoPredictLogo from "@/assets/cosmopredict-logo.png";
@@ -15,24 +17,19 @@ const Navbar = () => {
   const location = useLocation();
 
   const [open, setOpen] = useState(false);
-  const [, forceUpdate] = useState(0); // 🔥 safe re-render trigger
+  const [, forceUpdate] = useState(0);
 
-  // 🔥 animation refs (NO state loop)
   const rotationRef = useRef(0);
   const targetRotation = useRef(0);
   const velocity = useRef(0);
 
-  const lastX = useRef(0);
-  const isDragging = useRef(false);
-
   const [boostSpin, setBoostSpin] = useState(false);
 
-  // 🔒 scroll lock
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "auto";
   }, [open]);
 
-  // 🔥 animation loop (RUN ONLY ONCE)
+  // 🔥 animation loop
   useEffect(() => {
     let raf;
 
@@ -41,12 +38,9 @@ const Navbar = () => {
       const smooth = diff * 0.08;
 
       velocity.current *= 0.95;
-
       rotationRef.current += smooth + velocity.current;
 
-      // trigger UI update safely
       forceUpdate((prev) => prev + 1);
-
       raf = requestAnimationFrame(animate);
     };
 
@@ -66,41 +60,25 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  // 🧠 DRAG HANDLERS
-  const handleStart = (e) => {
-    isDragging.current = true;
-    lastX.current = e.touches ? e.touches[0].clientX : e.clientX;
-  };
-
-  const handleMove = (e) => {
-    if (!isDragging.current) return;
-
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
-    const delta = x - lastX.current;
-
-    velocity.current = delta * 0.02;
-    targetRotation.current += delta * 0.4;
-
-    lastX.current = x;
-  };
-
-  const handleEnd = () => {
-    isDragging.current = false;
-  };
-
   const toggleMenu = () => setOpen((prev) => !prev);
 
-  // 🌍 TAP BOOST
   const boostRotation = () => {
     velocity.current += 3;
     setBoostSpin(true);
-
     setTimeout(() => setBoostSpin(false), 600);
+  };
+
+  const rotateLeft = () => {
+    targetRotation.current -= 50;
+  };
+
+  const rotateRight = () => {
+    targetRotation.current += 50;
   };
 
   return (
     <>
-      {/* 🔥 NAVBAR */}
+      {/* NAVBAR */}
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-3xl bg-black/60 border-b border-cyan-400/20 shadow-[0_0_35px_rgba(34,211,238,0.25)]">
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between h-28 md:h-24">
@@ -116,7 +94,7 @@ const Navbar = () => {
               </span>
             </Link>
 
-            {/* DESKTOP NAV */}
+            {/* DESKTOP */}
             <div className="hidden md:flex items-center gap-3">
               {navLinks.map((link) => {
                 const Icon = link.icon;
@@ -139,23 +117,15 @@ const Navbar = () => {
               })}
             </div>
 
-            {/* 🚀 MOBILE BUTTON */}
+            {/* MOBILE BTN */}
             <div
               onClick={toggleMenu}
               className="md:hidden relative w-16 h-16 flex items-center justify-center cursor-pointer"
             >
               <div className="absolute w-20 h-20 bg-cyan-400/20 blur-2xl rounded-full animate-pulse"></div>
-
               <div className="absolute w-16 h-16 border border-cyan-400/30 rounded-full animate-spin-slow"></div>
-              <div className="absolute w-20 h-20 border border-cyan-400/10 rounded-full animate-spin-reverse"></div>
 
-              <div
-                className={`z-10 transition-all duration-500 ${
-                  open
-                    ? "rotate-180 scale-110 text-orange-400"
-                    : "text-cyan-400"
-                }`}
-              >
+              <div className={`z-10 ${open ? "rotate-180 text-orange-400" : "text-cyan-400"}`}>
                 {open ? <Rocket size={28} /> : <Orbit size={26} />}
               </div>
             </div>
@@ -163,27 +133,21 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* 🔥 MOBILE MENU */}
+      {/* MOBILE MENU */}
       <div
         className={`fixed inset-0 z-40 bg-black/95 flex items-center justify-center transition-all duration-500 ${
           open ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
       >
-        {/* rings */}
-        <div className="absolute w-80 h-80 border border-cyan-400/10 rounded-full animate-spin-slow"></div>
-        <div className="absolute w-96 h-96 border border-cyan-400/5 rounded-full animate-spin-reverse"></div>
+        {/* 🌌 ORBIT RINGS */}
+        <div className="absolute w-56 h-56 border border-cyan-400/20 rounded-full animate-spin-slow"></div>
+        <div className="absolute w-72 h-72 border border-purple-400/20 rounded-full animate-spin-reverse"></div>
+        <div className="absolute w-96 h-96 border border-blue-400/10 rounded-full animate-spin-slow"></div>
 
         {/* 🌍 EARTH */}
         <div
           onClick={boostRotation}
-          onMouseDown={handleStart}
-          onMouseMove={handleMove}
-          onMouseUp={handleEnd}
-          onMouseLeave={handleEnd}
-          onTouchStart={handleStart}
-          onTouchMove={handleMove}
-          onTouchEnd={handleEnd}
-          className="relative w-44 h-44 rounded-full overflow-hidden border border-cyan-400 shadow-[0_0_45px_#22d3ee] cursor-grab"
+          className="relative w-44 h-44 rounded-full overflow-hidden border border-cyan-400 shadow-[0_0_45px_#22d3ee]"
         >
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg"
@@ -193,18 +157,34 @@ const Navbar = () => {
           />
         </div>
 
-        {/* 🛰️ ITEMS */}
+        {/* 🔼 TOP CONTROLS */}
+        <div className="absolute top-60 flex gap-6">
+          <button
+            onClick={rotateLeft}
+            className="p-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 shadow-[0_0_15px_#ec4899] hover:scale-110 transition"
+          >
+            <ChevronLeft size={18} className="text-white" />
+          </button>
+
+          <button
+            onClick={rotateRight}
+            className="p-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 shadow-[0_0_15px_#22d3ee] hover:scale-110 transition"
+          >
+            <ChevronRight size={18} className="text-white" />
+          </button>
+        </div>
+
+        {/* ITEMS */}
         {open &&
           navLinks.map((link, i) => {
             const baseAngle = (i / navLinks.length) * 360;
             const dynamicAngle = baseAngle + rotationRef.current;
 
             const rad = (dynamicAngle * Math.PI) / 180;
-
             const radius = 190;
+
             const x = Math.cos(rad) * radius;
             const y = Math.sin(rad) * radius;
-
             const depth = Math.sin(rad);
 
             const Icon = link.icon;
@@ -214,29 +194,19 @@ const Navbar = () => {
                 key={link.path}
                 to={link.path}
                 onClick={() => setOpen(false)}
-                className="absolute flex flex-col items-center text-white transition-all duration-300"
+                className="absolute flex flex-col items-center text-white"
                 style={{
-                  transform: `
-                    translate(${x}px, ${y}px)
-                    scale(${1 + depth * 0.6})
-                    rotateX(${depth * 35}deg)
-                  `,
-                  opacity: 0.25 + depth * 0.75,
-                  zIndex: Math.round((depth + 1) * 100),
+                  transform: `translate(${x}px, ${y}px) scale(${1 + depth * 0.6})`,
+                  opacity: 0.3 + depth * 0.7,
                 }}
               >
-                <div className="p-3 rounded-full bg-white/10 backdrop-blur border border-white/20 hover:scale-125 hover:shadow-[0_0_25px_#22d3ee] transition">
+                <div className="p-3 rounded-full bg-white/10 border border-white/20 backdrop-blur">
                   <Icon size={22} />
                 </div>
                 <span className="text-xs mt-1">{link.name}</span>
               </Link>
             );
           })}
-
-        {/* footer */}
-        <div className="absolute bottom-6 text-gray-500 text-sm">
-          © 2026 CosmoPredict
-        </div>
       </div>
     </>
   );
