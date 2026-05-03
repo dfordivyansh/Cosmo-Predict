@@ -10,9 +10,8 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
 from django.utils.dateparse import parse_datetime
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .models import SpaceWeather
+from django.utils.timezone import make_aware
+
 
 
 # ==============================
@@ -104,55 +103,23 @@ def send_ws(data):
 @api_view(['GET'])
 def dashboard_data(request):
     try:
-        queryset = SpaceWeather.objects.all().order_by('-timestamp')[:10]
+        qs = SpaceWeather.objects.order_by('-timestamp')[:10]
 
-        if len(queryset) < 10:
+        if len(qs) < 5:
             return Response({"error": "Not enough data"})
 
-        data = list(queryset)[::-1]
+        data = list(qs)[::-1]
         latest = data[-1]
 
-        # ==============================
-        # 🔥 TRY ML (SAFE FALLBACK)
-        # ==============================
-        try:
-            sequence = np.array([
-                [d.speed, d.density, d.bx, d.by, d.bz, d.bt]
-                for d in data
-            ], dtype=float)
+        kp = float(latest.kp_index)  # ✅ REAL ONLY
 
-            kp_pred, severity = predict_lstm(sequence)
-            kp_pred = float(kp_pred)
-
-        except Exception as e:
-            print("ML ERROR:", e)
-            kp_pred = None
-
-        # ==============================
-        # 🔥 FINAL KP (REAL DATA FIRST)
-        # ==============================
-        if kp_pred is None or kp_pred == 0:
-            kp = float(latest.kp_index)   # ✅ fallback to NOAA real data
-        else:
-            kp = max(0, min(9, kp_pred))
-
-        # ==============================
-        # 🔥 SEVERITY FIX
-        # ==============================
+        # severity
         if kp > 5:
             severity = "high"
         elif kp > 3:
             severity = "moderate"
         else:
             severity = "low"
-
-        # ==============================
-        # 🔥 NOAA DATA
-        # ==============================
-        flare = get_flare_class()
-        noaa_alert = get_latest_alert()
-
-        alert_msg = generate_alert(kp)
 
         response_data = {
             "solarWind": float(latest.speed),
@@ -162,22 +129,18 @@ def dashboard_data(request):
             "kpIndex": round(kp, 2),
             "severity": severity,
 
-            "flareClass": flare,
-            "noaaAlert": noaa_alert,
+            "flareClass": get_flare_class(),
+            "noaaAlert": get_latest_alert(),
+            "alert": generate_alert(kp),
 
-            "alert": alert_msg,
             "timestamp": latest.timestamp
         }
 
-        # 🔥 WEBSOCKET PUSH
         send_ws(response_data)
-
         return Response(response_data)
 
     except Exception as e:
         return Response({"error": str(e)})
-
-
 # ==============================
 # 🔥 GRAPH DATA
 # ==============================
@@ -229,20 +192,21 @@ def range_data(request):
 
     qs = SpaceWeather.objects.all()
 
-    # ✅ Proper datetime parsing
     if start:
-        start_date = parse_datetime(start)
-        if start_date:
-            qs = qs.filter(timestamp__gte=start_date)
+        s = parse_datetime(start)
+        if s and s.tzinfo is None:
+            s = make_aware(s)
+        qs = qs.filter(timestamp__gte=s)
 
     if end:
-        end_date = parse_datetime(end)
-        if end_date:
-            qs = qs.filter(timestamp__lte=end_date)
+        e = parse_datetime(end)
+        if e and e.tzinfo is None:
+            e = make_aware(e)
+        qs = qs.filter(timestamp__lte=e)
 
     qs = qs.order_by("timestamp")[:500]
 
-    data = [
+    return Response([
         {
             "timestamp": d.timestamp,
             "speed": d.speed,
@@ -251,9 +215,7 @@ def range_data(request):
             "kp": d.kp_index
         }
         for d in qs
-    ]
-
-    return Response(data)
+    ])
 
 
 @api_view(['GET'])
@@ -292,19 +254,14 @@ def calculate_final_kp(data):
 
     except Exception as e:
         print("ML ERROR:", e)
-        kp_pred = None
+        return None
 
-    latest = data[-1]
-
-    if kp_pred is None or kp_pred == 0:
-        return float(latest.kp_index)
-    else:
-        return max(0, min(9, kp_pred))
+    return max(0, min(9, kp_pred))
 
 
 @api_view(['GET'])
 def prediction(request):
-    qs = list(SpaceWeather.objects.order_by('-timestamp')[:20])
+    qs = SpaceWeather.objects.order_by('-timestamp')[:20]
 
     qs = [d for d in qs if d.kp_index is not None]
 
@@ -313,8 +270,18 @@ def prediction(request):
 
     data = list(reversed(qs))
 
-    final_kp = calculate_final_kp(data)
+    # ✅ REAL KP (same as dashboard)
+    real_kp = float(data[-1].kp_index)
 
+    # 🤖 ML prediction
+    predicted_kp = calculate_final_kp(data)
+
+    # 🚨 SAFETY FIX (NO CRAZY JUMPS)
+    if predicted_kp is not None:
+        if abs(predicted_kp - real_kp) > 2:
+            predicted_kp = real_kp   # clamp
+
+    # stats
     kp_values = [float(d.kp_index) for d in data]
     avg_kp = sum(kp_values) / len(kp_values)
 
@@ -338,12 +305,14 @@ def prediction(request):
     confidence = round(min(100, (avg_kp / 9) * 100), 2)
 
     return Response({
-        "current_kp": round(final_kp, 2),  # ✅ ML + fallback
+        "current_kp": round(real_kp, 2),   # ✅ REAL
+        "predicted_kp": round(predicted_kp, 2) if predicted_kp else None,
         "avg_kp": round(avg_kp, 2),
         "trend": trend,
         "prediction": prediction_text,
         "confidence": confidence
     })
+
 
 
 @api_view(['GET'])

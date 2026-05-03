@@ -4,33 +4,43 @@ export const calculatePhysics = (state, spaceData, delta) => {
   const kp = Number(spaceData?.current_kp || 0);
   const solarWind = Number(spaceData?.avg_speed || 300);
 
-  /* ============================
-     🚀 FORCES
-  ============================ */
+  /* =========================
+     🌍 BASE FORCES
+  ========================= */
 
-  // Thrust (controlled upward force)
-  const thrust = 0.05 + kp * 0.003;
-
-  // Gravity (constant downward)
   const gravity = -0.02;
 
-  // 🌪 Space disturbance (LIMITED for stability)
-  const disturbance = Math.min(0.05, kp * 0.015 + solarWind * 0.00001);
+  // thrust reacts to KP (storm me unstable)
+  const thrust = 0.06 + kp * 0.004;
 
-  // 🧱 Drag (VERY IMPORTANT for stability)
-  const drag = 0.98;
+  // solar wind direction (dynamic)
+  const windDir = Math.sin(Date.now() * 0.001);
 
-  /* ============================
+  // turbulence (random but controlled)
+  const turbulence =
+    (Math.sin(Date.now() * 0.002 + position.y) +
+      Math.cos(position.x)) *
+    0.01 *
+    (kp / 5);
+
+  // disturbance (main KP + solar wind force)
+  const disturbance =
+    Math.min(0.08, kp * 0.02 + solarWind * 0.000015);
+
+  // damping (important for smoothness)
+  const drag = 0.97;
+
+  /* =========================
      ⚡ ACCELERATION
-  ============================ */
+  ========================= */
 
-  const ax = disturbance;
+  const ax = disturbance * windDir + turbulence;
   const ay = thrust + gravity;
-  const az = disturbance * 0.4;
+  const az = disturbance * 0.5 + turbulence;
 
-  /* ============================
-     🚀 VELOCITY UPDATE
-  ============================ */
+  /* =========================
+     🚀 VELOCITY
+  ========================= */
 
   const newVelocity = {
     x: (velocity.x + ax * delta) * drag,
@@ -38,13 +48,13 @@ export const calculatePhysics = (state, spaceData, delta) => {
     z: (velocity.z + az * delta) * drag,
   };
 
-  /* ============================
-     📍 POSITION UPDATE
-  ============================ */
+  /* =========================
+     📍 POSITION
+  ========================= */
 
   const newPosition = {
     x: position.x + newVelocity.x * delta,
-    y: Math.max(0, position.y + newVelocity.y * delta), // 🚫 ground limit
+    y: Math.max(0, position.y + newVelocity.y * delta),
     z: position.z + newVelocity.z * delta,
   };
 

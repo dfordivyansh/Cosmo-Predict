@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
@@ -31,40 +32,44 @@ import {
 } from "recharts";
 
 import { toast } from "sonner";
+import cosmoPredictLogo from "@/assets/cosmopredict-logo.png";
 
-const ACCESS_KEY = "SPACE-2026"; // 🔑 KEY
+const ACCESS_KEY = "SPACE-2026";
+const BASE = "http://127.0.0.1:8000/api";
 
 const Prediction = () => {
+  // ================= STATE =================
   const [minKp, setMinKp] = useState(0);
-
   const [data, setData] = useState<any[]>([]);
   const [result, setResult] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [alertsFeed, setAlertsFeed] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true); // 🔥 NEW
 
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
 
-  // 🔐 ACCESS STATES
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [inputKey, setInputKey] = useState("");
   const [error, setError] = useState("");
   const [verifying, setVerifying] = useState(false);
 
-  const BASE = "http://127.0.0.1:8000/api";
-
-  // ============================
-  // 🔐 CHECK LOCAL AUTH
-  // ============================
+  // ================= AUTH CHECK =================
   useEffect(() => {
     const saved = localStorage.getItem("prediction-auth");
     if (saved === "true") setIsAuthorized(true);
+
+    // 🔥 dashboard jaisa loader delay
+    const timer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  // ============================
-  // 🔐 ACCESS HANDLER
-  // ============================
+  // ================= ACCESS =================
   const handleAccess = () => {
     setVerifying(true);
 
@@ -80,105 +85,84 @@ const Prediction = () => {
     }, 700);
   };
 
-  // ============================
-  // 🔥 ANALYSIS
-  // ============================
-  const fetchData = async () => {
-    if (!startDate || !endDate) {
-      toast.error("Select date range");
+  // ================= FETCH =================
+const fetchData = async () => {
+  if (!startDate || !endDate) {
+    toast.error("Select date range");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    await new Promise((r) => setTimeout(r, 50));
+
+    setResult(null);
+    setData([]);
+
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0);
+
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59);
+
+    // ✅ 3 APIs together
+    const [rangeRes, alertRes, predictionRes] = await Promise.all([
+      axios.get(
+        `${BASE}/range/?start=${start.toISOString()}&end=${end.toISOString()}`
+      ),
+      axios.get(`${BASE}/all-alerts/`),
+      axios.get(`${BASE}/prediction/`), // 🔥 NEW
+    ]);
+
+    const rangeData = rangeRes.data;
+
+    if (!rangeData.length) {
+      toast.error("No data found");
       return;
     }
 
-    try {
-      setLoading(true);
-      setResult(null);
-      setData([]);
+    const filtered = rangeData.filter(
+      (d: any) => Number(d.kp) >= minKp
+    );
 
-      const start = new Date(startDate);
-      start.setHours(0, 0, 0);
-
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59);
-
-      const startISO = start.toISOString();
-      const endISO = end.toISOString();
-
-      const [rangeRes, alertRes] = await Promise.all([
-        axios.get(`${BASE}/range/?start=${startISO}&end=${endISO}`),
-        axios.get(`${BASE}/all-alerts/`),
-      ]);
-
-      const rangeData = rangeRes.data;
-
-      if (!rangeData.length) {
-        toast.error("No data found");
-        return;
-      }
-
-      const filtered = rangeData.filter(
-        (d: any) => Number(d.kp) >= minKp
-      );
-
-      if (!filtered.length) {
-        toast.error("No data after filter");
-        return;
-      }
-
-      setData(filtered);
-
-      const kpValues = filtered.map((d: any) => Number(d.kp));
-      const avgKp =
-        kpValues.reduce((a, b) => a + b, 0) / kpValues.length;
-
-      const currentKp = kpValues[kpValues.length - 1];
-
-      let trend = "stable";
-      if (currentKp > kpValues[0]) trend = "increasing";
-      else if (currentKp < kpValues[0]) trend = "decreasing";
-
-      let prediction = "Quiet";
-      if (avgKp > 6) prediction = "Severe Storm";
-      else if (avgKp > 4) prediction = "Strong Storm";
-      else if (avgKp > 2) prediction = "Moderate Activity";
-
-      const variance =
-        kpValues.reduce((a, v) => a + Math.abs(v - avgKp), 0) /
-        kpValues.length;
-
-      const confidence = Math.max(
-        30,
-        Math.min(95, 100 - variance * 20)
-      ).toFixed(2);
-
-      const final = {
-        current_kp: currentKp.toFixed(2),
-        avg_kp: avgKp.toFixed(2),
-        prediction,
-        confidence,
-        trend,
-        time: new Date().toLocaleTimeString(),
-      };
-
-      setResult(final);
-      setAlertsFeed(alertRes.data);
-
-      setHistory((prev) => [
-        final,
-        ...prev.filter((p) => p.time !== final.time).slice(0, 5),
-      ]);
-
-      toast.success("Analysis Complete 🚀");
-
-    } catch {
-      toast.error("API Error");
-    } finally {
-      setLoading(false);
+    if (!filtered.length) {
+      toast.error("No data after filter");
+      return;
     }
-  };
 
-  // ============================
-  // 🎤 VOICE
-  // ============================
+    setData(filtered);
+    setAlertsFeed(alertRes.data);
+
+    const p = predictionRes.data;
+
+    // ✅ DIRECT BACKEND RESULT
+    const final = {
+      current_kp: p.current_kp,        // REAL
+      predicted_kp: p.predicted_kp,    // ML
+      avg_kp: p.avg_kp,
+      prediction: p.prediction,
+      confidence: p.confidence,
+      trend: p.trend,
+      time: new Date().toLocaleTimeString(),
+    };
+
+    setResult(final);
+
+    setHistory((prev) => [
+      final,
+      ...prev.filter((h) => h.time !== final.time).slice(0, 5),
+    ]);
+
+    toast.success("Prediction Ready 🚀");
+
+  } catch {
+    toast.error("API Error");
+  } finally {
+    setLoading(false);
+  }
+};
+
   const speakAnalysis = () => {
     if (!result) return;
 
@@ -199,24 +183,21 @@ const Prediction = () => {
     return "text-green-400";
   };
 
-  // ============================
-  // 🔐 ACCESS SCREEN
-  // ============================
+  // ================= ACCESS SCREEN =================
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-slate-900 to-black text-white">
         <div className="bg-white/5 border border-white/10 p-8 rounded-2xl text-center w-full max-w-md">
-
-          <h1 className="text-2xl font-bold text-cyan-400 mb-4">
-            🔐 Secure Prediction Engine
+          <h1 className="text-2xl font-bold text-cyan-400 mb-4 flex gap-2 justify-center">
+            <FaSatellite className="animate-pulse" />
+            Secure Prediction Engine
           </h1>
 
           <input
             type="password"
-            placeholder="Enter Access Key"
             value={inputKey}
             onChange={(e) => setInputKey(e.target.value)}
-            className="w-full p-3 rounded-xl bg-black border border-white/20 mb-4"
+            className="w-full p-3 mb-4 rounded-xl bg-black border border-white/20"
           />
 
           <Button onClick={handleAccess} className="w-full bg-cyan-500">
@@ -229,19 +210,40 @@ const Prediction = () => {
     );
   }
 
-  // ============================
-  // 🚀 MAIN UI
-  // ============================
-  return (
-    <div className="min-h-screen bg-black text-white p-6">
+  // ================= 🔥 INITIAL LOADER =================
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-black via-slate-900 to-black text-white">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative">
+            <div className="absolute w-28 h-28 bg-cyan-400/30 blur-2xl rounded-full animate-pulse"></div>
 
+            <img
+              src={cosmoPredictLogo}
+              className="w-24 h-24 animate-[zoomPulse_2.5s_ease-in-out_infinite]"
+            />
+          </div>
+
+          <p className="text-cyan-400 animate-pulse tracking-widest">
+            Initializing Prediction Engine...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ================= MAIN =================
+  return (
+    <div className="min-h-screen pt-28 md:pt-24 bg-gradient-to-br from-black via-slate-900 to-black text-white p-6">
+
+      {/* HEADER */}
       <div className="text-center mb-6">
         <FaSatellite className="text-cyan-400 text-4xl mx-auto mb-2" />
         <h1 className="text-3xl font-bold">CosmoPredict</h1>
       </div>
 
+      {/* CONTROLS */}
       <Card className="p-4 mb-6 grid md:grid-cols-5 gap-4 bg-white/5">
-
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline">
@@ -266,11 +268,7 @@ const Prediction = () => {
           </PopoverContent>
         </Popover>
 
-        <Input
-          type="number"
-          placeholder="Min KP"
-          onChange={(e) => setMinKp(Number(e.target.value))}
-        />
+        <Input type="number" placeholder="Min KP" onChange={(e) => setMinKp(Number(e.target.value))} />
 
         <Button onClick={fetchData} className="bg-cyan-500">
           <FaSync /> Analyze
@@ -281,17 +279,34 @@ const Prediction = () => {
         </Button>
       </Card>
 
+      {/* RESULT */}
       {result && (
-        <Card className="p-6 mb-6 text-center bg-white/5">
-          <h2 className="text-5xl font-bold">{result.current_kp}</h2>
-          <p className={getColor(Number(result.current_kp))}>
-            {result.prediction}
-          </p>
-          <p>Trend: {result.trend}</p>
-          <p>Confidence: {result.confidence}%</p>
-        </Card>
-      )}
+  <Card className="p-6 mb-6 text-center bg-white/5">
 
+    <h2 className="text-sm text-gray-400">REAL KP</h2>
+    <h2 className="text-5xl font-bold">
+      {result.current_kp}
+    </h2>
+
+    {result.predicted_kp !== null && (
+      <>
+        <p className="mt-4 text-sm text-gray-400">PREDICTED KP</p>
+        <p className="text-3xl text-cyan-400 font-bold">
+          {result.predicted_kp}
+        </p>
+      </>
+    )}
+
+    <p className={`mt-4 ${getColor(Number(result.current_kp))}`}>
+      {result.prediction}
+    </p>
+
+    <p>Trend: {result.trend}</p>
+    <p>Confidence: {result.confidence}%</p>
+  </Card>
+)}
+
+      {/* CHART */}
       {data.length > 0 && (
         <Card className="p-4 mb-6 bg-white/5">
           <ResponsiveContainer width="100%" height={250}>
@@ -306,6 +321,7 @@ const Prediction = () => {
         </Card>
       )}
 
+      {/* ALERTS */}
       {alertsFeed.length > 0 && (
         <Card className="p-4 mb-6 bg-white/5">
           {alertsFeed.slice(0, 3).map((a, i) => (
@@ -314,6 +330,7 @@ const Prediction = () => {
         </Card>
       )}
 
+      {/* HISTORY */}
       {history.length > 0 && (
         <Card className="p-4 bg-white/5">
           <FaHistory /> History
@@ -327,7 +344,20 @@ const Prediction = () => {
         </Card>
       )}
 
-      {loading && <p className="text-center mt-4">Processing...</p>}
+      {/* 🔥 ACTION LOADER */}
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur">
+          <div className="flex flex-col items-center gap-6">
+            <img
+              src={cosmoPredictLogo}
+              className="w-24 h-24 animate-[zoomPulse_2.5s_ease-in-out_infinite]"
+            />
+            <p className="text-cyan-400 animate-pulse">
+              Analyzing Space Data...
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

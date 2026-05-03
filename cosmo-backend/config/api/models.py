@@ -2,7 +2,7 @@ from django.db import models
 
 
 class SpaceWeather(models.Model):
-    timestamp = models.DateTimeField(db_index=True)
+    timestamp = models.DateTimeField(db_index=True, unique=True)
 
     speed = models.FloatField(default=0)
     density = models.FloatField(default=0)

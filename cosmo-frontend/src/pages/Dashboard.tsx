@@ -20,7 +20,9 @@ import {
   CartesianGrid,
 } from "recharts";
 
-const ACCESS_KEY = "SPACE-2026"; // 🔑 CHANGE THIS
+import cosmoPredictLogo from "@/assets/cosmopredict-logo.png"; // 🔥 added
+
+const ACCESS_KEY = "SPACE-2026";
 
 const Dashboard = () => {
   const [data, setData] = useState<any>(null);
@@ -35,17 +37,11 @@ const Dashboard = () => {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // ============================
-  // 🔐 CHECK SAVED AUTH
-  // ============================
   useEffect(() => {
     const saved = localStorage.getItem("space-auth");
     if (saved === "true") setIsAuthorized(true);
   }, []);
 
-  // ============================
-  // 🔐 ACCESS HANDLER
-  // ============================
   const handleAccess = () => {
     setLoadingAccess(true);
 
@@ -58,12 +54,9 @@ const Dashboard = () => {
         setError("❌ Invalid Access Key");
       }
       setLoadingAccess(false);
-    }, 800); // fake verification delay
+    }, 800);
   };
 
-  // ============================
-  // 🔊 VOICE
-  // ============================
   const speakNow = () => {
     if (!data) return;
 
@@ -86,9 +79,6 @@ const Dashboard = () => {
     window.speechSynthesis.speak(speech);
   };
 
-  // ============================
-  // 🔥 FETCH DATA
-  // ============================
   const fetchData = async () => {
     try {
       const res = await axios.get("http://127.0.0.1:8000/api/dashboard/");
@@ -123,9 +113,6 @@ const Dashboard = () => {
     } catch {}
   };
 
-  // ============================
-  // 🔥 INIT
-  // ============================
   useEffect(() => {
     if (!isAuthorized) return;
 
@@ -142,56 +129,62 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [isAuthorized]);
 
-  // ============================
-  // 🔐 ACCESS SCREEN
-  // ============================
+  // ================= 🔐 ACCESS =================
   if (!isAuthorized) {
     return (
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-black via-slate-900 to-black text-white">
-        {" "}
-        <div className="flex-1 px-4 sm:px-6 py-6">
+        <div className="flex-1 flex justify-center items-center px-4 sm:px-6 py-6">
           <div className="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-xl shadow-xl w-full max-w-md text-center">
-          <h1 className="text-2xl font-bold mb-4 text-cyan-400 flex justify-center items-center gap-2">
-            <Radio className="animate-pulse" />
-            Secure Space System
-          </h1>
+            <h1 className="text-2xl font-bold mb-4 text-cyan-400 flex justify-center items-center gap-2">
+              <Radio className="animate-pulse" />
+              Secure Space System
+            </h1>
 
-          <p className="text-gray-400 mb-6 text-sm">
-            Authorized personnel only. Enter access key.
-          </p>
+            <p className="text-gray-400 mb-6 text-sm">
+              Authorized personnel only. Enter access key.
+            </p>
 
-          <input
-            type="password"
-            placeholder="Enter Access Key"
-            value={inputKey}
-            onChange={(e) => setInputKey(e.target.value)}
-            className="w-full p-3 rounded-xl bg-black border border-white/20 mb-4 outline-none"
-          />
+            <input
+              type="password"
+              placeholder="Enter Access Key"
+              value={inputKey}
+              onChange={(e) => setInputKey(e.target.value)}
+              className="w-full p-3 rounded-xl bg-black border border-white/20 mb-4 outline-none"
+            />
 
-          <button
-            onClick={handleAccess}
-            disabled={loadingAccess}
-            className="w-full bg-cyan-500 py-2 rounded-xl hover:scale-105 transition">
-            {loadingAccess ? "Verifying..." : "Unlock System"}
-          </button>
+            <button
+              onClick={handleAccess}
+              disabled={loadingAccess}
+              className="w-full bg-cyan-500 py-2 rounded-xl hover:scale-105 transition">
+              {loadingAccess ? "Verifying..." : "Unlock System"}
+            </button>
 
-          {error && <p className="text-red-400 mt-3 text-sm">{error}</p>}
-        </div>
+            {error && <p className="text-red-400 mt-3 text-sm">{error}</p>}
+          </div>
         </div>
       </div>
     );
   }
 
+  // ================= 🔥 NEW LOADER =================
   if (!data)
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-black via-slate-900 to-black text-white">
-        {/* Spinner */}
-        <div className="w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mb-6"></div>
+      <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-black via-slate-900 to-black text-white">
+        <div className="flex flex-col items-center gap-6">
 
-        {/* Text */}
-        <p className="text-cyan-400 text-lg tracking-widest animate-pulse">
-          Initializing Space System...
-        </p>
+          <div className="relative">
+            <div className="absolute w-28 h-28 rounded-full bg-cyan-400/30 blur-2xl animate-pulse"></div>
+
+            <img
+              src={cosmoPredictLogo}
+              className="w-24 h-24 animate-[zoomPulse_2.5s_ease-in-out_infinite]"
+            />
+          </div>
+
+          <p className="text-cyan-400 text-lg tracking-widest animate-pulse">
+            Initializing Space System...
+          </p>
+        </div>
       </div>
     );
 
@@ -199,14 +192,12 @@ const Dashboard = () => {
     data.kpIndex > 5
       ? "text-red-400"
       : data.kpIndex > 3
-        ? "text-yellow-400"
-        : "text-green-400";
+      ? "text-yellow-400"
+      : "text-green-400";
 
-  // ============================
-  // 🚀 MAIN DASHBOARD
-  // ============================
+  // ================= MAIN =================
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-black text-white px-4 sm:px-6 py-6">
+    <div className="min-h-screen pt-28 md:pt-24 bg-gradient-to-br from-black via-slate-900 to-black text-white px-4 sm:px-6 py-6">
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
