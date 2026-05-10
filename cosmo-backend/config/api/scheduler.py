@@ -6,13 +6,11 @@ scheduler = None
 def start():
     global scheduler
 
-    # 🔥 prevent multiple schedulers (IMPORTANT)
     if scheduler and scheduler.running:
         return
 
     scheduler = BackgroundScheduler()
 
-    # 🔥 run every 1 minute
     scheduler.add_job(fetch_data, 'interval', minutes=1)
 
     scheduler.start()
