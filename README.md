@@ -3,7 +3,7 @@
 # 🌌 CosmoPredict
 ### 🚀 AI Powered Space Weather & Asteroid Monitoring Platform
 
-<img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExbGR6c3AyNG9vZ3k5dDh5eG16Z2M0d2d3NXBkM2RzMmJrMWc2eG5sZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l0HlBO7eyXzSZkJri/giphy.gif" width="100%" />
+<img src="https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif" width="100%" />
 
 <br>
 
