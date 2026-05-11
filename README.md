@@ -363,12 +363,21 @@ Dashboard
 
 
 
-
 ---
 
 AI Prediction Panel
 
 > <img width="1525" height="736" alt="image" src="https://github.com/user-attachments/assets/4a4e765b-1ca5-424c-9bce-09fcf0c780f3" />
+
+
+
+
+
+---
+
+AI Insights Panel
+
+> <img width="1600" height="928" alt="image" src="https://github.com/user-attachments/assets/73b681ca-b712-4cda-9300-a0f36cf467e8" />
 
 
 
