@@ -1,12 +1,16 @@
-# 🌌 CosmoPredict  
-### AI Powered Space Weather & Asteroid Monitoring Platform
-
 <div align="center">
 
-![CosmoPredict Banner](https://media.giphy.com/media/l0HlNaQ6gWfllcjDO/giphy.gif)
+# 🌌 CosmoPredict
+### 🚀 AI Powered Space Weather & Asteroid Monitoring Platform
 
-### 🌍 Live Website  
-## 🚀 https://cosmopredict.space
+<img src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExbGR6c3AyNG9vZ3k5dDh5eG16Z2M0d2d3NXBkM2RzMmJrMWc2eG5sZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l0HlBO7eyXzSZkJri/giphy.gif" width="100%" />
+
+<br>
+
+### 🌍 Live Website
+# 🚀 https://cosmopredict.space
+
+<br>
 
 ![GitHub stars](https://img.shields.io/github/stars/dfordivyansh/Cosmo-Predict?style=for-the-badge)
 ![GitHub forks](https://img.shields.io/github/forks/dfordivyansh/Cosmo-Predict?style=for-the-badge)
@@ -43,8 +47,6 @@ to provide intelligent monitoring of:
 ---
 
 # ✨ Features
-
----
 
 ## 🌍 Space Weather Monitoring
 
@@ -127,7 +129,7 @@ Cosmo-Predict/
 
 # ⚙️ Installation Guide
 
-# 1️⃣ Clone Repository
+## 1️⃣ Clone Repository
 
 ```bash
 git clone https://github.com/dfordivyansh/Cosmo-Predict.git
@@ -250,8 +252,6 @@ CosmoPredict integrates advanced AI models for:
 
 # 🌐 APIs Used
 
----
-
 ## ☀️ NOAA APIs
 
 Used for:
@@ -313,33 +313,31 @@ waitress-serve --host=0.0.0.0 --port=8000 config.wsgi:application
 
 # 📸 Project Screenshots
 
----
-
-# 🏠 Home Page
+## 🏠 Home Page
 
 ![Home Page](https://github.com/user-attachments/assets/d4e387b3-961a-4609-a82c-1c50cb69c0be)
 
 ---
 
-# 📊 Dashboard
+## 📊 Dashboard
 
 ![Dashboard](https://github.com/user-attachments/assets/f7b928e2-e5f8-48f8-96a4-4cd83c02152a)
 
 ---
 
-# 🤖 AI Prediction Panel
+## 🤖 AI Prediction Panel
 
 ![AI Prediction](https://github.com/user-attachments/assets/4a4e765b-1ca5-424c-9bce-09fcf0c780f3)
 
 ---
 
-# 🧠 AI Insights Panel
+## 🧠 AI Insights Panel
 
 ![AI Insights](https://github.com/user-attachments/assets/73b681ca-b712-4cda-9300-a0f36cf467e8)
 
 ---
 
-# ⚙️ Django Admin Panel
+## ⚙️ Django Admin Panel
 
 ![Django Admin](https://github.com/user-attachments/assets/64577ccc-4baa-4ad1-86ac-17044336d830)
 
@@ -359,8 +357,6 @@ waitress-serve --host=0.0.0.0 --port=8000 config.wsgi:application
 ---
 
 # 🔥 Challenges Solved
-
----
 
 ## 🛠️ GitHub Large File Issues
 
@@ -420,12 +416,6 @@ If you like this project, please consider giving it a ⭐ on GitHub.
 
 ---
 
-# 🌍 Live Project
-
-# 🚀 https://cosmopredict.space
-
----
-
 # 📄 License
 
 This project is developed for **educational and research purposes**.
@@ -434,8 +424,10 @@ This project is developed for **educational and research purposes**.
 
 <div align="center">
 
-# 🌌 “Exploring Space with AI Intelligence” 🚀
+## 🚀 Exploring Space with Artificial Intelligence 🌌
 
-![Space GIF](https://media.giphy.com/media/3o7TKsQ8UQK5QcQv1C/giphy.gif)
+<img src="https://media.giphy.com/media/iicDrNGWxHmDrIni6j/giphy.gif" width="400"/>
+
+### ⭐ Star this repository if you liked the project!
 
 </div>
