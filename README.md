@@ -1,4 +1,4 @@
-<img width="4400" height="3425" alt="business-growth" src="https://github.com/user-attachments/assets/eedc4a8b-6b2b-4b41-aa71-1f210af821eb" />🚀 CosmoPredict
+🚀 CosmoPredict
 
 AI Powered Space Weather & Asteroid Monitoring Platform
 
