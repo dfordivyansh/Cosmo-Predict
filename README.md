@@ -3,7 +3,7 @@
 # 🌌 CosmoPredict
 ### 🚀 AI Powered Space Weather Prediction Platform
 
-<img src="https://media.giphy.com/media/3o7btZ3T6y3JTmjg4w/giphy.gif" width="100%" />
+<img src="https://media.giphy.com/media/5VKbvrjxpVJCM/giphy.gif" width="100%" />
 
 <br>
 
