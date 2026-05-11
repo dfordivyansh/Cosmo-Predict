@@ -1,4 +1,4 @@
-🚀 CosmoPredict
+<img width="4400" height="3425" alt="business-growth" src="https://github.com/user-attachments/assets/eedc4a8b-6b2b-4b41-aa71-1f210af821eb" />🚀 CosmoPredict
 
 AI Powered Space Weather & Asteroid Monitoring Platform
 
@@ -349,7 +349,7 @@ waitress-serve --host=0.0.0.0 --port=8000 config.wsgi:application
 
 Home Page
 
-> Add screenshot here
+> <img width="1920" height="1080" alt="Screenshot 2026-04-30 144053" src="https://github.com/user-attachments/assets/d4e387b3-961a-4609-a82c-1c50cb69c0be" />
 
 
 
@@ -358,7 +358,8 @@ Home Page
 
 Dashboard
 
-> Add screenshot here
+> <img width="1600" height="856" alt="image" src="https://github.com/user-attachments/assets/f7b928e2-e5f8-48f8-96a4-4cd83c02152a" />
+
 
 
 
@@ -367,7 +368,8 @@ Dashboard
 
 AI Prediction Panel
 
-> Add screenshot here
+> <img width="1525" height="736" alt="image" src="https://github.com/user-attachments/assets/4a4e765b-1ca5-424c-9bce-09fcf0c780f3" />
+
 
 
 
@@ -376,7 +378,8 @@ AI Prediction Panel
 
 Django Admin
 
-> Add screenshot here
+> <img width="1516" height="731" alt="image" src="https://github.com/user-attachments/assets/64577ccc-4baa-4ad1-86ac-17044336d830" />
+
 
 
 
